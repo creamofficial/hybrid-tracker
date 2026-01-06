@@ -1,10 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
-
-// Kaizen Design System
-const PRIMARY = "#FF6B35";
-const FOREGROUND = "#1A1A1A";
-const MUTED = "#4A4A4A";
-const BORDER = "#E8E8E8";
+import { LinearGradient } from "expo-linear-gradient";
+import { colors, typography, spacing, borderRadius } from "~/lib/theme";
 
 interface WeeklyChartProps {
   workouts: Array<{ date: string }>;
@@ -38,23 +34,42 @@ export function WeeklyChart({ workouts }: WeeklyChartProps) {
   return (
     <View style={styles.container}>
       <View style={styles.bars}>
-        {weeks.map((week, index) => (
-          <View key={index} style={styles.barContainer}>
-            <View style={styles.barWrapper}>
-              <View
-                style={[
-                  styles.bar,
-                  {
-                    height: `${(week.count / maxCount) * 100}%`,
-                    backgroundColor: index === 3 ? PRIMARY : '#FFB088',
-                  },
-                ]}
-              />
+        {weeks.map((week, index) => {
+          const isCurrentWeek = index === 3;
+          const heightPercent = (week.count / maxCount) * 100;
+
+          return (
+            <View key={index} style={styles.barContainer}>
+              <View style={styles.barWrapper}>
+                {isCurrentWeek ? (
+                  <LinearGradient
+                    colors={[colors.primary.start, colors.primary.end]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={[
+                      styles.bar,
+                      { height: `${Math.max(heightPercent, 8)}%` },
+                    ]}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.bar,
+                      styles.barInactive,
+                      { height: `${Math.max(heightPercent, 8)}%` },
+                    ]}
+                  />
+                )}
+              </View>
+              <Text style={[styles.barLabel, isCurrentWeek && styles.barLabelActive]}>
+                {week.count}
+              </Text>
+              <Text style={[styles.weekLabel, isCurrentWeek && styles.weekLabelActive]}>
+                {week.label}
+              </Text>
             </View>
-            <Text style={styles.barLabel}>{week.count}</Text>
-            <Text style={styles.weekLabel}>{week.label}</Text>
-          </View>
-        ))}
+          );
+        })}
       </View>
     </View>
   );
@@ -62,42 +77,48 @@ export function WeeklyChart({ workouts }: WeeklyChartProps) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 12,
+    padding: spacing.lg,
   },
   bars: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    height: 80,
+    height: 100,
   },
   barContainer: {
     flex: 1,
     alignItems: 'center',
   },
   barWrapper: {
-    width: 24,
-    height: 50,
-    backgroundColor: BORDER,
-    borderRadius: 4,
+    width: 32,
+    height: 60,
+    backgroundColor: colors.border,
+    borderRadius: borderRadius.sm,
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },
   bar: {
     width: '100%',
-    borderRadius: 4,
-    minHeight: 4,
+    borderRadius: borderRadius.sm,
+  },
+  barInactive: {
+    backgroundColor: 'rgba(255, 138, 0, 0.3)',
   },
   barLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: FOREGROUND,
-    marginTop: 4,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.cardTitle,
+    fontSize: 14,
+    color: colors.text.secondary,
+    marginTop: spacing.sm,
+  },
+  barLabelActive: {
+    color: colors.primary.solid,
   },
   weekLabel: {
-    fontSize: 9,
-    color: MUTED,
-    marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.small,
+    color: colors.text.tertiary,
+    marginTop: spacing.xs,
+  },
+  weekLabelActive: {
+    color: colors.text.secondary,
   },
 });

@@ -1,57 +1,91 @@
 import { Tabs } from "expo-router";
 import { Home, PlusCircle, ClipboardList, User } from "lucide-react-native";
-
-// Kaizen Design System Colors
-const CREAM = '#FFFFFF';
-const PRIMARY = '#FF6B35';
-const MUTED = '#4A4A4A';
-const BORDER = '#E8E8E8';
+import { colors, typography, shadows } from "~/lib/theme";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: PRIMARY,
-        tabBarInactiveTintColor: MUTED,
+        tabBarActiveTintColor: colors.primary.solid,
+        tabBarInactiveTintColor: colors.text.tertiary,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: BORDER,
+          backgroundColor: colors.card,
+          borderTopColor: colors.borderLight,
           borderTopWidth: 1,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 80,
+          ...shadows.card,
         },
-        headerStyle: { backgroundColor: CREAM },
-        headerTintColor: '#1A1A1A',
-        headerTitleStyle: { fontWeight: "600", fontFamily: 'Poppins_600SemiBold' },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontFamily: 'Poppins_500Medium',
+          marginTop: 4,
+        },
+        headerStyle: {
+          backgroundColor: colors.background,
+          ...shadows.none,
+        },
+        headerTintColor: colors.text.primary,
+        headerTitleStyle: {
+          ...typography.sectionHeader,
+        },
+        headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={2} />,
+          tabBarIcon: ({ color, focused }) => (
+            <Home
+              size={24}
+              color={color}
+              strokeWidth={focused ? 2.5 : 2}
+              fill={focused ? color : 'transparent'}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="log"
         options={{
           title: "Log",
-          tabBarIcon: ({ color, size }) => <PlusCircle size={size} color={color} strokeWidth={2} />,
+          tabBarIcon: ({ color, focused }) => (
+            <PlusCircle
+              size={24}
+              color={color}
+              strokeWidth={focused ? 2.5 : 2}
+              fill={focused ? color : 'transparent'}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="programs"
         options={{
           title: "Programs",
-          tabBarIcon: ({ color, size }) => <ClipboardList size={size} color={color} strokeWidth={2} />,
+          tabBarIcon: ({ color, focused }) => (
+            <ClipboardList
+              size={24}
+              color={color}
+              strokeWidth={focused ? 2.5 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => <User size={size} color={color} strokeWidth={2} />,
+          tabBarIcon: ({ color, focused }) => (
+            <User
+              size={24}
+              color={color}
+              strokeWidth={focused ? 2.5 : 2}
+              fill={focused ? color : 'transparent'}
+            />
+          ),
         }}
       />
     </Tabs>

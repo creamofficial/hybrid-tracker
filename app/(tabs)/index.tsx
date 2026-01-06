@@ -1,64 +1,15 @@
-import { View, ScrollView, Pressable, Image, StyleSheet } from "react-native";
+import { View, ScrollView, Pressable, Image, StyleSheet, Text as RNText } from "react-native";
 import { useRouter } from "expo-router";
 import { Text } from "~/components/ui/text";
 import { useStore } from "~/store/useStore";
-import { xpToNextLevel } from "~/lib/xp";
-import { Flame, Dumbbell, Footprints, Plus, ChevronRight, Calendar, TrendingUp, Sparkles } from "lucide-react-native";
-import Svg, { Circle } from "react-native-svg";
+import { LinearGradient } from "expo-linear-gradient";
+import { Flame, Dumbbell, Footprints, Plus, ChevronRight, TrendingUp, Sparkles } from "lucide-react-native";
+import { colors, shadows, typography, borderRadius, spacing, iconContainer } from "~/lib/theme";
+import { ProgressRing } from "~/components/ui/progress-ring";
+import { GradientButton } from "~/components/ui/gradient-button";
+import { WorkoutCardCompact } from "~/components/ui/workout-card";
 import { WeeklyChart } from "~/components/ui/weekly-chart";
 import { EmptyState } from "~/components/ui/empty-state";
-
-// Kaizen Design System
-const PRIMARY = "#FF6B35";
-const ACCENT = "#10B981";
-const FOREGROUND = "#1A1A1A";
-const MUTED = "#4A4A4A";
-const CREAM = "#FFFFFF";
-const CARD = "#FFFFFF";
-const BORDER = "#E8E8E8";
-
-// Compact circular progress for weekly goal
-function WeeklyProgress({ current, total }: { current: number; total: number }) {
-  const size = 48;
-  const strokeWidth = 4;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const progress = total > 0 ? current / total : 0;
-  const strokeDashoffset = circumference - progress * circumference;
-
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={size} height={size}>
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={BORDER}
-          strokeWidth={strokeWidth}
-          fill="transparent"
-        />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={PRIMARY}
-          strokeWidth={strokeWidth}
-          fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          rotation="-90"
-          origin={`${size / 2}, ${size / 2}`}
-        />
-      </Svg>
-      <View style={{ position: 'absolute', alignItems: 'center' }}>
-        <Text style={{ fontSize: 14, fontWeight: '700', color: FOREGROUND, fontFamily: 'Poppins_700Bold' }}>
-          {current}
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 // Get current week days
 function getWeekDays() {
@@ -97,6 +48,7 @@ export default function HomeScreen() {
 
   const workoutsThisWeek = workouts.filter(w => new Date(w.date) >= startOfWeek).length;
   const weeklyGoal = 4;
+  const weeklyProgress = weeklyGoal > 0 ? workoutsThisWeek / weeklyGoal : 0;
 
   // Check which days have workouts
   const workoutDates = new Set(workouts.map(w => new Date(w.date).toDateString()));
@@ -121,18 +73,37 @@ export default function HomeScreen() {
         <Text style={styles.dateText}>{formatDate()}</Text>
       </View>
 
-      {/* Weekly Goal Card - thinner accent border */}
-      <View style={styles.weeklyCard}>
-        <View style={styles.weeklyHeader}>
-          <View>
-            <Text style={styles.weeklyTitle}>Weekly goal</Text>
-            <Text style={styles.weeklySubtitle}>{workoutsThisWeek} of {weeklyGoal} workouts</Text>
+      {/* Weekly Goal Hero Card */}
+      <View style={[styles.weeklyCard, shadows.elevated]}>
+        <LinearGradient
+          colors={['rgba(255, 138, 0, 0.06)', 'rgba(255, 179, 71, 0.02)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.weeklyGradient}
+        >
+          <View style={styles.weeklyHeader}>
+            <View>
+              <Text style={styles.weeklyLabel}>Weekly goal</Text>
+              <View style={styles.weeklyStats}>
+                <Text style={styles.weeklyCount}>{workoutsThisWeek}</Text>
+                <Text style={styles.weeklyDivider}>/</Text>
+                <Text style={styles.weeklyTotal}>{weeklyGoal}</Text>
+                <Text style={styles.weeklyUnit}>workouts</Text>
+              </View>
+              {workoutsThisWeek === 0 && (
+                <Text style={styles.motivationText}>Start your streak today</Text>
+              )}
+              {workoutsThisWeek >= weeklyGoal && (
+                <Text style={styles.successText}>Goal achieved! 🎉</Text>
+              )}
+            </View>
+            <ProgressRing progress={weeklyProgress} size={72} strokeWidth={7}>
+              <Text style={styles.progressPercent}>
+                {Math.round(weeklyProgress * 100)}%
+              </Text>
+            </ProgressRing>
           </View>
-          <WeeklyProgress current={workoutsThisWeek} total={weeklyGoal} />
-        </View>
-        {workoutsThisWeek === 0 && (
-          <Text style={styles.motivationText}>Start your streak today</Text>
-        )}
+        </LinearGradient>
       </View>
 
       {/* Week Calendar */}
@@ -140,25 +111,40 @@ export default function HomeScreen() {
         {weekDays.map((day, index) => {
           const hasWorkout = workoutDates.has(day.dateObj.toDateString());
           return (
-            <View key={index} style={[styles.dayPill, day.isToday && styles.dayPillToday]}>
+            <View key={index} style={styles.dayContainer}>
               <Text style={[styles.dayName, day.isToday && styles.dayNameToday]}>{day.day}</Text>
-              {hasWorkout ? (
+              {day.isToday ? (
+                <LinearGradient
+                  colors={[colors.primary.start, colors.primary.end]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.dayPillToday}
+                >
+                  <Text style={styles.dayDateToday}>{day.date}</Text>
+                </LinearGradient>
+              ) : hasWorkout ? (
                 <View style={styles.completedDot}>
                   <Text style={styles.checkMark}>✓</Text>
                 </View>
               ) : (
-                <Text style={[styles.dayDate, day.isToday && styles.dayDateToday]}>{day.date}</Text>
+                <View style={styles.dayPill}>
+                  <Text style={styles.dayDate}>{day.date}</Text>
+                </View>
               )}
             </View>
           );
         })}
       </View>
 
-      {/* Start Workout Button - solid orange, no gradient */}
-      <Pressable style={styles.startButton} onPress={() => router.push("/log")}>
-        <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
-        <Text style={styles.startButtonText}>Start new workout</Text>
-      </Pressable>
+      {/* Start Workout Button */}
+      <View style={styles.buttonContainer}>
+        <GradientButton
+          title="Start new workout"
+          onPress={() => router.push("/log")}
+          icon={<Plus size={20} color={colors.text.inverse} strokeWidth={2.5} />}
+          size="lg"
+        />
+      </View>
 
       {/* Recent Workouts */}
       <View style={styles.section}>
@@ -167,14 +153,14 @@ export default function HomeScreen() {
           {recentWorkouts.length > 0 && (
             <Pressable style={styles.viewAllButton}>
               <Text style={styles.viewAllText}>View all</Text>
-              <ChevronRight size={16} color={PRIMARY} strokeWidth={2} />
+              <ChevronRight size={16} color={colors.primary.solid} strokeWidth={2} />
             </Pressable>
           )}
         </View>
 
         {recentWorkouts.length === 0 ? (
           <EmptyState
-            icon={<Sparkles size={36} color={PRIMARY} strokeWidth={1.5} />}
+            icon={<Sparkles size={36} color={colors.primary.solid} strokeWidth={1.5} />}
             title="Your fitness journey starts here"
             subtitle="Every expert was once a beginner. Log your first workout and start building your streak!"
             actionLabel="Start workout"
@@ -183,31 +169,19 @@ export default function HomeScreen() {
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.workoutList}>
             {recentWorkouts.map((workout) => (
-              <View key={workout.id} style={styles.workoutCard}>
-                <View style={[
-                  styles.workoutIcon,
-                  { backgroundColor: workout.type === 'run' ? '#E6F7F2' : '#FEF3E7' }
-                ]}>
-                  {workout.type === 'run' ? (
-                    <Footprints size={20} color={ACCENT} strokeWidth={2} />
-                  ) : (
-                    <Dumbbell size={20} color={PRIMARY} strokeWidth={2} />
-                  )}
-                </View>
-                <Text style={styles.workoutName}>
-                  {workout.type === 'run' ? 'Run' : 'Lift'}
-                </Text>
-                <Text style={styles.workoutDate}>
-                  {new Date(workout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                </Text>
-                <Text style={styles.workoutDetail}>
-                  {workout.type === 'run' && workout.run_log
+              <WorkoutCardCompact
+                key={workout.id}
+                type={workout.type}
+                title={workout.type === 'run' ? 'Run' : 'Lift'}
+                date={new Date(workout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                detail={
+                  workout.type === 'run' && workout.run_log
                     ? `${workout.run_log.distance_km.toFixed(1)} km`
                     : workout.lift_log
                     ? `${workout.lift_log.exercises.length} exercises`
-                    : ''}
-                </Text>
-              </View>
+                    : ''
+                }
+              />
             ))}
           </ScrollView>
         )}
@@ -218,9 +192,9 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Weekly progress</Text>
-            <TrendingUp size={16} color={PRIMARY} strokeWidth={2} />
+            <TrendingUp size={18} color={colors.primary.solid} strokeWidth={2} />
           </View>
-          <View style={styles.chartCard}>
+          <View style={[styles.chartCard, shadows.card]}>
             <WeeklyChart workouts={workouts} />
           </View>
         </View>
@@ -228,14 +202,21 @@ export default function HomeScreen() {
 
       {/* Streak Card */}
       {(user?.current_streak || 0) > 0 && (
-        <View style={styles.streakCard}>
-          <View style={styles.streakIcon}>
-            <Flame size={20} color={PRIMARY} strokeWidth={2} />
-          </View>
-          <View style={styles.streakContent}>
-            <Text style={styles.streakTitle}>{user?.current_streak} day streak</Text>
-            <Text style={styles.streakSubtitle}>Keep it going!</Text>
-          </View>
+        <View style={[styles.streakCard, shadows.card]}>
+          <LinearGradient
+            colors={['rgba(255, 138, 0, 0.08)', 'rgba(255, 179, 71, 0.04)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.streakGradient}
+          >
+            <View style={styles.streakIcon}>
+              <Flame size={22} color={colors.primary.solid} strokeWidth={2} />
+            </View>
+            <View style={styles.streakContent}>
+              <Text style={styles.streakTitle}>{user?.current_streak} day streak</Text>
+              <Text style={styles.streakSubtitle}>Keep the momentum going!</Text>
+            </View>
+          </LinearGradient>
         </View>
       )}
 
@@ -247,151 +228,172 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: CREAM,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   logo: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
   },
   brandName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_700Bold',
+    ...typography.sectionHeader,
+    fontSize: 22,
+    color: colors.text.primary,
   },
   dateText: {
-    fontSize: 12,
-    color: MUTED,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
   },
+  // Weekly Goal Card
   weeklyCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderLeftWidth: 3,
-    borderLeftColor: PRIMARY,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    backgroundColor: colors.card,
+  },
+  weeklyGradient: {
+    padding: spacing.xl,
   },
   weeklyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  weeklyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+  weeklyLabel: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
   },
-  weeklySubtitle: {
+  weeklyStats: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  weeklyCount: {
+    ...typography.hero,
+    color: colors.text.primary,
+  },
+  weeklyDivider: {
+    ...typography.stat,
+    color: colors.text.tertiary,
+  },
+  weeklyTotal: {
+    ...typography.stat,
+    color: colors.text.tertiary,
+  },
+  weeklyUnit: {
+    ...typography.body,
+    color: colors.text.secondary,
+    marginLeft: spacing.xs,
+  },
+  progressPercent: {
+    ...typography.cardTitle,
     fontSize: 14,
-    color: MUTED,
-    marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
+    color: colors.primary.solid,
   },
   motivationText: {
-    fontSize: 13,
-    color: PRIMARY,
-    marginTop: 12,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    color: colors.primary.solid,
+    marginTop: spacing.sm,
   },
+  successText: {
+    ...typography.caption,
+    color: colors.success,
+    marginTop: spacing.sm,
+  },
+  // Week Calendar
   weekCalendar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginTop: 16,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xl,
   },
-  dayPill: {
+  dayContainer: {
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    minWidth: 40,
-  },
-  dayPillToday: {
-    backgroundColor: PRIMARY,
+    width: 44,
   },
   dayName: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: MUTED,
-    marginBottom: 4,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.small,
+    color: colors.text.tertiary,
+    marginBottom: spacing.sm,
+    textTransform: 'uppercase',
   },
   dayNameToday: {
-    color: '#FFFFFF',
+    color: colors.primary.solid,
+    fontWeight: '600',
+  },
+  dayPill: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayPillToday: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dayDate: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.body,
+    fontWeight: '500',
+    color: colors.text.primary,
   },
   dayDateToday: {
-    color: '#FFFFFF',
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.text.inverse,
   },
   completedDot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: ACCENT,
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.success,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkMark: {
-    color: '#FFFFFF',
-    fontSize: 12,
+    color: colors.text.inverse,
+    fontSize: 14,
     fontWeight: '700',
   },
-  startButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: PRIMARY,
-    marginHorizontal: 16,
-    marginTop: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
+  // Button
+  buttonContainer: {
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xl,
   },
-  startButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    fontFamily: 'Poppins_600SemiBold',
-  },
+  // Sections
   section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
+    marginTop: spacing.xxl,
+    paddingHorizontal: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.sectionHeader,
+    color: colors.text.primary,
   },
   viewAllButton: {
     flexDirection: 'row',
@@ -399,89 +401,52 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   viewAllText: {
-    fontSize: 14,
-    color: PRIMARY,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    color: colors.primary.solid,
+    fontWeight: '500',
   },
   workoutList: {
-    marginLeft: -16,
-    paddingLeft: 16,
+    marginLeft: -spacing.lg,
+    paddingLeft: spacing.lg,
   },
-  workoutCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    width: 140,
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderLeftWidth: 3,
-    borderLeftColor: PRIMARY,
+  chartCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
   },
-  workoutIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  workoutName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: FOREGROUND,
-    marginBottom: 2,
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  workoutDate: {
-    fontSize: 12,
-    color: MUTED,
-    marginBottom: 8,
-    fontFamily: 'Poppins_400Regular',
-  },
-  workoutDetail: {
-    fontSize: 12,
-    color: MUTED,
-    fontFamily: 'Poppins_400Regular',
-  },
+  // Streak Card
   streakCard: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.xl,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.card,
+  },
+  streakGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3E7',
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: '#FFE4CC',
-    gap: 12,
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   streakIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    width: iconContainer.lg.size,
+    height: iconContainer.lg.size,
+    borderRadius: iconContainer.lg.radius,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.card,
   },
   streakContent: {
     flex: 1,
   },
   streakTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.cardTitle,
+    color: colors.text.primary,
   },
   streakSubtitle: {
-    fontSize: 13,
-    color: MUTED,
-    fontFamily: 'Poppins_400Regular',
-  },
-  chartCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: 2,
   },
 });

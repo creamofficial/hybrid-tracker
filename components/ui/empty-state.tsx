@@ -1,11 +1,7 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { ReactNode } from "react";
-
-// Kaizen Design System
-const PRIMARY = "#FF6B35";
-const FOREGROUND = "#1A1A1A";
-const MUTED = "#4A4A4A";
-const BORDER = "#E8E8E8";
+import { colors, shadows, typography, borderRadius, spacing } from "~/lib/theme";
+import { GradientButton } from "./gradient-button";
 
 interface EmptyStateProps {
   icon: ReactNode;
@@ -25,16 +21,21 @@ export function EmptyState({
   variant = 'default',
 }: EmptyStateProps) {
   return (
-    <View style={[styles.container, variant === 'compact' && styles.containerCompact]}>
+    <View style={[styles.container, shadows.card, variant === 'compact' && styles.containerCompact]}>
       <View style={[styles.iconContainer, variant === 'compact' && styles.iconContainerCompact]}>
         {icon}
       </View>
       <Text style={[styles.title, variant === 'compact' && styles.titleCompact]}>{title}</Text>
       <Text style={[styles.subtitle, variant === 'compact' && styles.subtitleCompact]}>{subtitle}</Text>
       {actionLabel && onAction && (
-        <Pressable style={styles.actionButton} onPress={onAction}>
-          <Text style={styles.actionText}>{actionLabel}</Text>
-        </Pressable>
+        <View style={styles.buttonContainer}>
+          <GradientButton
+            title={actionLabel}
+            onPress={onAction}
+            size="sm"
+            fullWidth={false}
+          />
+        </View>
       )}
     </View>
   );
@@ -42,65 +43,51 @@ export function EmptyState({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xxxl,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: BORDER,
   },
   containerCompact: {
-    padding: 24,
+    padding: spacing.xxl,
+    borderRadius: borderRadius.lg,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FEF3E7',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.accent.orange.bg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   iconContainerCompact: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: FOREGROUND,
+    ...typography.sectionHeader,
+    color: colors.text.primary,
     textAlign: 'center',
-    marginBottom: 8,
-    fontFamily: 'Poppins_600SemiBold',
+    marginBottom: spacing.sm,
   },
   titleCompact: {
-    fontSize: 16,
-    marginBottom: 4,
+    ...typography.cardTitle,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 14,
-    color: MUTED,
+    ...typography.body,
+    color: colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 20,
-    fontFamily: 'Poppins_400Regular',
-    maxWidth: 260,
+    maxWidth: 280,
+    lineHeight: 22,
   },
   subtitleCompact: {
-    fontSize: 13,
+    ...typography.caption,
   },
-  actionButton: {
-    backgroundColor: PRIMARY,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 20,
-  },
-  actionText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    fontFamily: 'Poppins_600SemiBold',
+  buttonContainer: {
+    marginTop: spacing.xl,
   },
 });

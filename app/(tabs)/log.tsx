@@ -2,16 +2,10 @@ import { View, Pressable, ScrollView, StyleSheet, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { Text } from "~/components/ui/text";
 import { useStore } from "~/store/useStore";
-import { Footprints, Dumbbell, ChevronRight, Bike, Waves, Flame, Lock, Calendar } from "lucide-react-native";
-
-// Kaizen Design System
-const PRIMARY = "#FF6B35";
-const ACCENT = "#10B981";
-const FOREGROUND = "#1A1A1A";
-const MUTED = "#4A4A4A";
-const CREAM = "#FFFFFF";
-const CARD = "#FFFFFF";
-const BORDER = "#E8E8E8";
+import { LinearGradient } from "expo-linear-gradient";
+import { Footprints, Dumbbell, ChevronRight, Bike, Waves, Flame, Lock, Calendar, Clock } from "lucide-react-native";
+import { colors, shadows, typography, borderRadius, spacing, iconContainer } from "~/lib/theme";
+import { ProgressRing } from "~/components/ui/progress-ring";
 
 export default function LogScreen() {
   const router = useRouter();
@@ -20,6 +14,14 @@ export default function LogScreen() {
   // Count today's workouts
   const today = new Date().toDateString();
   const todayWorkouts = workouts.filter(w => new Date(w.date).toDateString() === today).length;
+
+  // Weekly progress
+  const startOfWeek = new Date();
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+  const workoutsThisWeek = workouts.filter(w => new Date(w.date) >= startOfWeek).length;
+  const weeklyGoal = 4;
+  const weeklyProgress = weeklyGoal > 0 ? workoutsThisWeek / weeklyGoal : 0;
 
   // Get recent workouts for quick actions
   const recentRun = workouts.filter(w => w.type === 'run').slice(-1)[0];
@@ -39,18 +41,16 @@ export default function LogScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Image
-            source={require('../../appstore.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
           <Text style={styles.headerTitle}>Log workout</Text>
+          {todayWorkouts > 0 && (
+            <View style={styles.todayBadge}>
+              <Text style={styles.todayBadgeText}>{todayWorkouts} today</Text>
+            </View>
+          )}
         </View>
-        {todayWorkouts > 0 && (
-          <View style={styles.todayBadge}>
-            <Text style={styles.todayBadgeText}>{todayWorkouts} today</Text>
-          </View>
-        )}
+        <ProgressRing progress={weeklyProgress} size={48} strokeWidth={5}>
+          <Text style={styles.progressText}>{workoutsThisWeek}/{weeklyGoal}</Text>
+        </ProgressRing>
       </View>
 
       {/* Quick Actions - Recent Workouts */}
@@ -59,27 +59,39 @@ export default function LogScreen() {
           <Text style={styles.sectionTitle}>Quick actions</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.quickActionsScroll}>
             {recentRun?.run_log && (
-              <Pressable style={styles.quickActionCard} onPress={() => router.push("/log-run")}>
-                <View style={[styles.quickActionIcon, { backgroundColor: '#E6F7F2' }]}>
-                  <Footprints size={18} color={ACCENT} strokeWidth={2} />
+              <Pressable
+                style={({ pressed }) => [styles.quickActionCard, shadows.card, pressed && styles.pressed]}
+                onPress={() => router.push("/log-run")}
+              >
+                <View style={[styles.quickActionIcon, { backgroundColor: colors.accent.green.bg }]}>
+                  <Footprints size={18} color={colors.accent.green.icon} strokeWidth={2} />
                 </View>
                 <Text style={styles.quickActionTitle}>{recentRun.run_log.distance_km}km Run</Text>
-                <Text style={styles.quickActionSubtitle}>
-                  {recentRun.duration_minutes} mins · {formatRelativeDate(recentRun.date)}
-                </Text>
+                <View style={styles.quickActionMeta}>
+                  <Clock size={12} color={colors.text.tertiary} strokeWidth={2} />
+                  <Text style={styles.quickActionSubtitle}>
+                    {recentRun.duration_minutes} min · {formatRelativeDate(recentRun.date)}
+                  </Text>
+                </View>
               </Pressable>
             )}
             {recentLift?.lift_log && (
-              <Pressable style={styles.quickActionCard} onPress={() => router.push("/log-lift")}>
-                <View style={[styles.quickActionIcon, { backgroundColor: '#FEF3E7' }]}>
-                  <Dumbbell size={18} color={PRIMARY} strokeWidth={2} />
+              <Pressable
+                style={({ pressed }) => [styles.quickActionCard, shadows.card, pressed && styles.pressed]}
+                onPress={() => router.push("/log-lift")}
+              >
+                <View style={[styles.quickActionIcon, { backgroundColor: colors.accent.orange.bg }]}>
+                  <Dumbbell size={18} color={colors.accent.orange.icon} strokeWidth={2} />
                 </View>
                 <Text style={styles.quickActionTitle}>
                   {recentLift.lift_log.exercises[0]?.name || 'Lift'}
                 </Text>
-                <Text style={styles.quickActionSubtitle}>
-                  {recentLift.lift_log.exercises.length} exercises · {formatRelativeDate(recentLift.date)}
-                </Text>
+                <View style={styles.quickActionMeta}>
+                  <Clock size={12} color={colors.text.tertiary} strokeWidth={2} />
+                  <Text style={styles.quickActionSubtitle}>
+                    {recentLift.lift_log.exercises.length} exercises · {formatRelativeDate(recentLift.date)}
+                  </Text>
+                </View>
               </Pressable>
             )}
           </ScrollView>
@@ -90,26 +102,32 @@ export default function LogScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Workout types</Text>
         <View style={styles.workoutTypesGrid}>
-          <Pressable style={styles.workoutTypeCard} onPress={() => router.push("/log-run")}>
-            <View style={[styles.workoutTypeIcon, { backgroundColor: '#E6F7F2' }]}>
-              <Footprints size={24} color={ACCENT} strokeWidth={2} />
+          <Pressable
+            style={({ pressed }) => [styles.workoutTypeCard, shadows.card, pressed && styles.pressed]}
+            onPress={() => router.push("/log-run")}
+          >
+            <View style={[styles.workoutTypeIcon, { backgroundColor: colors.accent.green.bg }]}>
+              <Footprints size={24} color={colors.accent.green.icon} strokeWidth={2} />
             </View>
             <View style={styles.workoutTypeContent}>
               <Text style={styles.workoutTypeName}>Run</Text>
               <Text style={styles.workoutTypeDesc}>Distance, time, pace</Text>
             </View>
-            <ChevronRight size={20} color={BORDER} strokeWidth={2} />
+            <ChevronRight size={20} color={colors.text.tertiary} strokeWidth={2} />
           </Pressable>
 
-          <Pressable style={styles.workoutTypeCard} onPress={() => router.push("/log-lift")}>
-            <View style={[styles.workoutTypeIcon, { backgroundColor: '#FEF3E7' }]}>
-              <Dumbbell size={24} color={PRIMARY} strokeWidth={2} />
+          <Pressable
+            style={({ pressed }) => [styles.workoutTypeCard, shadows.card, pressed && styles.pressed]}
+            onPress={() => router.push("/log-lift")}
+          >
+            <View style={[styles.workoutTypeIcon, { backgroundColor: colors.accent.orange.bg }]}>
+              <Dumbbell size={24} color={colors.accent.orange.icon} strokeWidth={2} />
             </View>
             <View style={styles.workoutTypeContent}>
               <Text style={styles.workoutTypeName}>Lift</Text>
               <Text style={styles.workoutTypeDesc}>Exercises, sets, reps</Text>
             </View>
-            <ChevronRight size={20} color={BORDER} strokeWidth={2} />
+            <ChevronRight size={20} color={colors.text.tertiary} strokeWidth={2} />
           </Pressable>
         </View>
       </View>
@@ -118,59 +136,83 @@ export default function LogScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>More activities</Text>
         <View style={styles.moreActivitiesGrid}>
-          <View style={[styles.activityCard, styles.activityCardDisabled]}>
-            <View style={[styles.activityIcon, { backgroundColor: '#F3E8FF' }]}>
-              <Bike size={20} color="#8B5CF6" strokeWidth={2} />
+          <View style={[styles.activityCard, shadows.card, styles.activityCardDisabled]}>
+            <View style={[styles.activityIcon, { backgroundColor: colors.accent.purple.bg }]}>
+              <Bike size={20} color={colors.accent.purple.icon} strokeWidth={2} />
             </View>
             <Text style={styles.activityName}>Cycle</Text>
-            <Text style={styles.comingSoonText}>Soon</Text>
+            <View style={styles.comingSoonBadge}>
+              <Lock size={10} color={colors.text.tertiary} strokeWidth={2} />
+              <Text style={styles.comingSoonText}>Soon</Text>
+            </View>
           </View>
 
-          <View style={[styles.activityCard, styles.activityCardDisabled]}>
-            <View style={[styles.activityIcon, { backgroundColor: '#E0F2FE' }]}>
-              <Waves size={20} color="#0EA5E9" strokeWidth={2} />
+          <View style={[styles.activityCard, shadows.card, styles.activityCardDisabled]}>
+            <View style={[styles.activityIcon, { backgroundColor: colors.accent.blue.bg }]}>
+              <Waves size={20} color={colors.accent.blue.icon} strokeWidth={2} />
             </View>
             <Text style={styles.activityName}>Swim</Text>
-            <Text style={styles.comingSoonText}>Soon</Text>
+            <View style={styles.comingSoonBadge}>
+              <Lock size={10} color={colors.text.tertiary} strokeWidth={2} />
+              <Text style={styles.comingSoonText}>Soon</Text>
+            </View>
           </View>
 
-          <View style={[styles.activityCard, styles.activityCardDisabled]}>
-            <View style={[styles.activityIcon, { backgroundColor: '#FEF9C3' }]}>
-              <Flame size={20} color="#EAB308" strokeWidth={2} />
+          <View style={[styles.activityCard, shadows.card, styles.activityCardDisabled]}>
+            <View style={[styles.activityIcon, { backgroundColor: colors.accent.yellow.bg }]}>
+              <Flame size={20} color={colors.accent.yellow.icon} strokeWidth={2} />
             </View>
             <Text style={styles.activityName}>HIIT</Text>
-            <Text style={styles.comingSoonText}>Soon</Text>
+            <View style={styles.comingSoonBadge}>
+              <Lock size={10} color={colors.text.tertiary} strokeWidth={2} />
+              <Text style={styles.comingSoonText}>Soon</Text>
+            </View>
           </View>
 
-          <View style={[styles.activityCard, styles.activityCardDisabled]}>
-            <View style={[styles.activityIcon, { backgroundColor: '#FCE7F3' }]}>
-              <Lock size={20} color="#EC4899" strokeWidth={2} />
+          <View style={[styles.activityCard, shadows.card, styles.activityCardDisabled]}>
+            <View style={[styles.activityIcon, { backgroundColor: colors.accent.pink.bg }]}>
+              <Calendar size={20} color={colors.accent.pink.icon} strokeWidth={2} />
             </View>
             <Text style={styles.activityName}>Custom</Text>
-            <Text style={styles.comingSoonText}>Soon</Text>
+            <View style={styles.comingSoonBadge}>
+              <Lock size={10} color={colors.text.tertiary} strokeWidth={2} />
+              <Text style={styles.comingSoonText}>Soon</Text>
+            </View>
           </View>
         </View>
       </View>
 
       {/* Streak Reminder Card */}
-      <View style={styles.streakCard}>
-        <View style={styles.streakCardIcon}>
-          <Calendar size={20} color={PRIMARY} strokeWidth={2} />
-        </View>
-        <View style={styles.streakCardContent}>
-          <Text style={styles.streakCardTitle}>Build your streak</Text>
-          <Text style={styles.streakCardSubtitle}>Log a workout every day for bonus XP</Text>
-        </View>
+      <View style={[styles.streakCard, shadows.card]}>
+        <LinearGradient
+          colors={['rgba(255, 138, 0, 0.08)', 'rgba(255, 179, 71, 0.04)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.streakGradient}
+        >
+          <View style={styles.streakCardIcon}>
+            <Flame size={20} color={colors.primary.solid} strokeWidth={2} />
+          </View>
+          <View style={styles.streakCardContent}>
+            <Text style={styles.streakCardTitle}>Build your streak</Text>
+            <Text style={styles.streakCardSubtitle}>Log a workout every day for bonus XP</Text>
+          </View>
+        </LinearGradient>
       </View>
 
       {/* Active Program */}
       {activeProgram && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Active program</Text>
-          <Pressable style={styles.programCard}>
-            <View style={styles.programBadge}>
+          <Pressable style={[styles.programCard, shadows.elevated]}>
+            <LinearGradient
+              colors={[colors.primary.start, colors.primary.end]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.programBadge}
+            >
               <Text style={styles.programBadgeText}>ACTIVE</Text>
-            </View>
+            </LinearGradient>
             <Text style={styles.programName}>{activeProgram.name}</Text>
             <Text style={styles.programProgress}>
               Week {programProgress?.week} · Day {programProgress?.day}
@@ -187,228 +229,218 @@ export default function LogScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: CREAM,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-  },
-  logo: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
+    gap: spacing.md,
   },
   headerTitle: {
+    ...typography.sectionHeader,
     fontSize: 24,
-    fontWeight: '700',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_700Bold',
+    color: colors.text.primary,
   },
   todayBadge: {
-    backgroundColor: ACCENT,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: colors.success,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   todayBadgeText: {
-    fontSize: 12,
+    ...typography.small,
     fontWeight: '600',
-    color: '#FFFFFF',
-    fontFamily: 'Poppins_600SemiBold',
+    color: colors.text.inverse,
+  },
+  progressText: {
+    ...typography.small,
+    fontWeight: '600',
+    color: colors.primary.solid,
   },
   section: {
-    paddingHorizontal: 16,
-    marginTop: 20,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xl,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: MUTED,
-    marginBottom: 12,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.md,
   },
   workoutTypesGrid: {
-    gap: 10,
+    gap: spacing.md,
   },
   workoutTypeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
   },
   workoutTypeIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: iconContainer.lg.size,
+    height: iconContainer.lg.size,
+    borderRadius: iconContainer.lg.radius,
     alignItems: 'center',
     justifyContent: 'center',
   },
   workoutTypeContent: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: spacing.lg,
   },
   workoutTypeName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.cardTitle,
+    color: colors.text.primary,
   },
   workoutTypeDesc: {
-    fontSize: 13,
-    color: MUTED,
+    ...typography.caption,
+    color: colors.text.secondary,
     marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
   },
   moreActivitiesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: spacing.md,
   },
   activityCard: {
-    width: '48%',
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
+    width: '47%',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
   },
   activityCardDisabled: {
-    opacity: 0.5,
+    opacity: 0.6,
   },
   activityIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: iconContainer.md.size,
+    height: iconContainer.md.size,
+    borderRadius: iconContainer.md.radius,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: spacing.md,
   },
   activityName: {
+    ...typography.cardTitle,
     fontSize: 15,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    color: colors.text.primary,
   },
-  comingSoonText: {
-    fontSize: 11,
-    color: MUTED,
-    marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
-  },
-  streakCard: {
+  comingSoonBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3E7',
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: PRIMARY,
-    gap: 12,
+    gap: 4,
+    marginTop: spacing.xs,
+  },
+  comingSoonText: {
+    ...typography.small,
+    color: colors.text.tertiary,
+  },
+  streakCard: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.xl,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.card,
+  },
+  streakGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   streakCardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    width: iconContainer.md.size,
+    height: iconContainer.md.size,
+    borderRadius: iconContainer.md.radius,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.card,
   },
   streakCardContent: {
     flex: 1,
   },
   streakCardTitle: {
+    ...typography.cardTitle,
     fontSize: 15,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    color: colors.text.primary,
   },
   streakCardSubtitle: {
-    fontSize: 13,
-    color: MUTED,
-    marginTop: 1,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: 2,
   },
   programCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: PRIMARY,
-    borderLeftWidth: 3,
-    borderLeftColor: PRIMARY,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
   },
   programBadge: {
-    backgroundColor: PRIMARY,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
     alignSelf: 'flex-start',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   programBadgeText: {
-    fontSize: 10,
+    ...typography.small,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text.inverse,
     letterSpacing: 0.5,
-    fontFamily: 'Poppins_700Bold',
   },
   programName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.cardTitle,
+    color: colors.text.primary,
   },
   programProgress: {
-    fontSize: 13,
-    color: MUTED,
-    marginTop: 4,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
   },
   quickActionsScroll: {
-    marginLeft: -16,
-    paddingLeft: 16,
+    marginLeft: -spacing.lg,
+    paddingLeft: spacing.lg,
   },
   quickActionCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 14,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: BORDER,
-    minWidth: 140,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginRight: spacing.md,
+    minWidth: 160,
   },
   quickActionIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: iconContainer.md.size,
+    height: iconContainer.md.size,
+    borderRadius: iconContainer.md.radius,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: spacing.md,
   },
   quickActionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.cardTitle,
+    fontSize: 15,
+    color: colors.text.primary,
+  },
+  quickActionMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.xs,
   },
   quickActionSubtitle: {
-    fontSize: 11,
-    color: MUTED,
-    marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.small,
+    color: colors.text.tertiary,
   },
 });

@@ -3,23 +3,22 @@ import { Text } from "~/components/ui/text";
 import { useStore } from "~/store/useStore";
 import { xpToNextLevel } from "~/lib/xp";
 import { BADGES } from "~/lib/badges";
+import { LinearGradient } from "expo-linear-gradient";
 import { Trophy, Target, Footprints, Clock, Flame, ChevronRight, Lock, Zap, TrendingUp, Award } from "lucide-react-native";
+import { colors, shadows, typography, borderRadius, spacing, iconContainer } from "~/lib/theme";
+import { ProgressRing } from "~/components/ui/progress-ring";
 import { ActivityHeatmap } from "~/components/ui/activity-heatmap";
-
-// Kaizen Design System
-const PRIMARY = "#FF6B35";
-const ACCENT = "#10B981";
-const FOREGROUND = "#1A1A1A";
-const MUTED = "#4A4A4A";
-const CREAM = "#FFFFFF";
-const CARD = "#FFFFFF";
-const BORDER = "#E8E8E8";
 
 // Progress bar component
 function ProgressBar({ progress }: { progress: number }) {
   return (
     <View style={styles.progressBarContainer}>
-      <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
+      <LinearGradient
+        colors={[colors.primary.start, colors.primary.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.progressBarFill, { width: `${Math.min(progress * 100, 100)}%` }]}
+      />
     </View>
   );
 }
@@ -41,17 +40,14 @@ export default function ProfileScreen() {
   const runWorkouts = workouts.filter((w) => w.type === "run" && w.run_log);
   const liftWorkouts = workouts.filter((w) => w.type === "lift" && w.lift_log);
 
-  // Longest run
   const longestRun = runWorkouts.length > 0
     ? Math.max(...runWorkouts.map((w) => w.run_log!.distance_km))
     : 0;
 
-  // Fastest pace (min per km) - lower is better
   const fastestPace = runWorkouts.length > 0
     ? Math.min(...runWorkouts.map((w) => w.run_log!.pace_per_km))
     : 0;
 
-  // Heaviest lift
   const heaviestLift = liftWorkouts.reduce((max, w) => {
     const exerciseMax = w.lift_log!.exercises.reduce((eMax, ex) => {
       const setMax = ex.sets.reduce((sMax, set) => Math.max(sMax, set.weight_kg), 0);
@@ -60,7 +56,6 @@ export default function ProfileScreen() {
     return Math.max(max, exerciseMax);
   }, 0);
 
-  // Most workouts in a week
   const getWeekStart = (date: Date) => {
     const d = new Date(date);
     d.setDate(d.getDate() - d.getDay());
@@ -75,7 +70,6 @@ export default function ProfileScreen() {
   });
   const bestWeek = weekCounts.size > 0 ? Math.max(...weekCounts.values()) : 0;
 
-  // Format pace as mm:ss
   const formatPace = (pacePerKm: number) => {
     if (pacePerKm === 0) return "--:--";
     const mins = Math.floor(pacePerKm);
@@ -98,11 +92,16 @@ export default function ProfileScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header / Avatar */}
       <View style={styles.header}>
-        <View style={styles.avatar}>
+        <LinearGradient
+          colors={[colors.primary.start, colors.primary.end]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.avatar}
+        >
           <Text style={styles.avatarText}>
             {(user?.display_name || "A")[0].toUpperCase()}
           </Text>
-        </View>
+        </LinearGradient>
         <Text style={styles.displayName}>{user?.display_name || "Athlete"}</Text>
         <Text style={styles.memberSince}>
           Training since {new Date(user?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
@@ -110,10 +109,10 @@ export default function ProfileScreen() {
       </View>
 
       {/* Level Card */}
-      <View style={styles.levelCard}>
+      <View style={[styles.levelCard, shadows.elevated]}>
         <View style={styles.levelHeader}>
           <View style={styles.levelIcon}>
-            <Trophy size={20} color={PRIMARY} strokeWidth={2} />
+            <Trophy size={22} color={colors.accent.amber.icon} strokeWidth={2} />
           </View>
           <View style={styles.levelInfo}>
             <Text style={styles.levelLabel}>Current Level</Text>
@@ -133,26 +132,26 @@ export default function ProfileScreen() {
       {/* Statistics */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Statistics</Text>
-        <View style={styles.statsCard}>
+        <View style={[styles.statsCard, shadows.card]}>
           <View style={styles.statItem}>
-            <View style={[styles.statIcon, { backgroundColor: '#FEF3E7' }]}>
-              <Target size={18} color={PRIMARY} strokeWidth={2} />
+            <View style={[styles.statIcon, { backgroundColor: colors.accent.orange.bg }]}>
+              <Target size={18} color={colors.accent.orange.icon} strokeWidth={2} />
             </View>
             <Text style={styles.statValue}>{workouts.length}</Text>
             <Text style={styles.statLabel}>Workouts</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <View style={[styles.statIcon, { backgroundColor: '#E6F7F2' }]}>
-              <Footprints size={18} color={ACCENT} strokeWidth={2} />
+            <View style={[styles.statIcon, { backgroundColor: colors.accent.green.bg }]}>
+              <Footprints size={18} color={colors.accent.green.icon} strokeWidth={2} />
             </View>
             <Text style={styles.statValue}>{totalDistance.toFixed(1)}</Text>
             <Text style={styles.statLabel}>km run</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <View style={[styles.statIcon, { backgroundColor: '#F3E8FF' }]}>
-              <Clock size={18} color="#8B5CF6" strokeWidth={2} />
+            <View style={[styles.statIcon, { backgroundColor: colors.accent.purple.bg }]}>
+              <Flame size={18} color={colors.accent.purple.icon} strokeWidth={2} />
             </View>
             <Text style={styles.statValue}>{user?.longest_streak || 0}</Text>
             <Text style={styles.statLabel}>Best streak</Text>
@@ -160,21 +159,21 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Quick Stats Grid - simplified to 4 items */}
+      {/* Quick Stats Grid */}
       <View style={styles.quickStatsGrid}>
-        <View style={styles.quickStatCard}>
+        <View style={[styles.quickStatCard, shadows.card]}>
           <Text style={styles.quickStatValue}>{user?.current_streak || 0}</Text>
           <Text style={styles.quickStatLabel}>Current streak</Text>
         </View>
-        <View style={styles.quickStatCard}>
+        <View style={[styles.quickStatCard, shadows.card]}>
           <Text style={styles.quickStatValue}>{runCount}</Text>
           <Text style={styles.quickStatLabel}>Runs</Text>
         </View>
-        <View style={styles.quickStatCard}>
+        <View style={[styles.quickStatCard, shadows.card]}>
           <Text style={styles.quickStatValue}>{liftCount}</Text>
           <Text style={styles.quickStatLabel}>Lifts</Text>
         </View>
-        <View style={styles.quickStatCard}>
+        <View style={[styles.quickStatCard, shadows.card]}>
           <Text style={styles.quickStatValue}>
             {workouts.length > 0
               ? Math.round(workouts.reduce((acc, w) => acc + w.duration_minutes, 0) / workouts.length)
@@ -187,7 +186,7 @@ export default function ProfileScreen() {
       {/* Activity Heatmap */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Activity</Text>
-        <View style={styles.heatmapCard}>
+        <View style={[styles.heatmapCard, shadows.card]}>
           <ActivityHeatmap workouts={workouts} days={35} />
         </View>
       </View>
@@ -197,52 +196,43 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Personal records</Text>
-            <Award size={16} color={PRIMARY} strokeWidth={2} />
+            <Award size={16} color={colors.primary.solid} strokeWidth={2} />
           </View>
           <View style={styles.recordsGrid}>
             {longestRun > 0 && (
-              <View style={styles.recordCard}>
-                <View style={[styles.recordIcon, { backgroundColor: '#E6F7F2' }]}>
-                  <Footprints size={16} color={ACCENT} strokeWidth={2} />
+              <View style={[styles.recordCard, shadows.card]}>
+                <View style={[styles.recordIcon, { backgroundColor: colors.accent.green.bg }]}>
+                  <Footprints size={16} color={colors.accent.green.icon} strokeWidth={2} />
                 </View>
                 <Text style={styles.recordValue}>{longestRun.toFixed(1)} km</Text>
                 <Text style={styles.recordLabel}>Longest run</Text>
               </View>
             )}
             {fastestPace > 0 && (
-              <View style={styles.recordCard}>
-                <View style={[styles.recordIcon, { backgroundColor: '#E6F7F2' }]}>
-                  <Zap size={16} color={ACCENT} strokeWidth={2} />
+              <View style={[styles.recordCard, shadows.card]}>
+                <View style={[styles.recordIcon, { backgroundColor: colors.accent.green.bg }]}>
+                  <Zap size={16} color={colors.accent.green.icon} strokeWidth={2} />
                 </View>
                 <Text style={styles.recordValue}>{formatPace(fastestPace)}</Text>
                 <Text style={styles.recordLabel}>Fastest pace</Text>
               </View>
             )}
             {heaviestLift > 0 && (
-              <View style={styles.recordCard}>
-                <View style={[styles.recordIcon, { backgroundColor: '#FEF3E7' }]}>
-                  <TrendingUp size={16} color={PRIMARY} strokeWidth={2} />
+              <View style={[styles.recordCard, shadows.card]}>
+                <View style={[styles.recordIcon, { backgroundColor: colors.accent.orange.bg }]}>
+                  <TrendingUp size={16} color={colors.accent.orange.icon} strokeWidth={2} />
                 </View>
                 <Text style={styles.recordValue}>{heaviestLift} kg</Text>
                 <Text style={styles.recordLabel}>Heaviest lift</Text>
               </View>
             )}
             {bestWeek > 0 && (
-              <View style={styles.recordCard}>
-                <View style={[styles.recordIcon, { backgroundColor: '#F3E8FF' }]}>
-                  <Target size={16} color="#8B5CF6" strokeWidth={2} />
+              <View style={[styles.recordCard, shadows.card]}>
+                <View style={[styles.recordIcon, { backgroundColor: colors.accent.purple.bg }]}>
+                  <Target size={16} color={colors.accent.purple.icon} strokeWidth={2} />
                 </View>
                 <Text style={styles.recordValue}>{bestWeek}</Text>
                 <Text style={styles.recordLabel}>Best week</Text>
-              </View>
-            )}
-            {(user?.longest_streak || 0) > 0 && (
-              <View style={styles.recordCard}>
-                <View style={[styles.recordIcon, { backgroundColor: '#FEF3E7' }]}>
-                  <Flame size={16} color={PRIMARY} strokeWidth={2} />
-                </View>
-                <Text style={styles.recordValue}>{user?.longest_streak}</Text>
-                <Text style={styles.recordLabel}>Best streak</Text>
               </View>
             )}
           </View>
@@ -254,7 +244,7 @@ export default function ProfileScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Badges</Text>
           <Text style={styles.badgeCount}>
-            <Text style={{ color: PRIMARY }}>{earnedCount} earned</Text> · {lockedCount} locked
+            <Text style={{ color: colors.primary.solid }}>{earnedCount}</Text> / {BADGES.length}
           </Text>
         </View>
         <View style={styles.badgesGrid}>
@@ -263,7 +253,7 @@ export default function ProfileScreen() {
             return (
               <View
                 key={badge.id}
-                style={[styles.badgeCard, !earned && styles.badgeCardLocked]}
+                style={[styles.badgeCard, shadows.card, !earned && styles.badgeCardLocked]}
               >
                 <Text style={styles.badgeIcon}>
                   {earned ? badge.icon : "🔒"}
@@ -278,13 +268,13 @@ export default function ProfileScreen() {
         {BADGES.length > 6 && (
           <Pressable style={styles.viewAllBadges}>
             <Text style={styles.viewAllBadgesText}>View all badges</Text>
-            <ChevronRight size={16} color={PRIMARY} strokeWidth={2} />
+            <ChevronRight size={16} color={colors.primary.solid} strokeWidth={2} />
           </Pressable>
         )}
       </View>
 
       {/* Reset Button */}
-      <Pressable style={styles.resetButton} onPress={handleClearData}>
+      <Pressable style={[styles.resetButton, shadows.card]} onPress={handleClearData}>
         <Text style={styles.resetButtonText}>Reset all data</Text>
       </Pressable>
 
@@ -296,291 +286,260 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: CREAM,
+    backgroundColor: colors.background,
   },
   header: {
     alignItems: 'center',
-    paddingTop: 24,
-    paddingBottom: 16,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.lg,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: PRIMARY,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
+    ...shadows.elevated,
   },
   avatarText: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: 'Poppins_700Bold',
+    ...typography.hero,
+    fontSize: 32,
+    color: colors.text.inverse,
   },
   displayName: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.sectionHeader,
+    fontSize: 24,
+    color: colors.text.primary,
   },
   memberSince: {
-    fontSize: 13,
-    color: MUTED,
-    marginTop: 4,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
   },
   levelCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: BORDER,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
   },
   levelHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: spacing.lg,
   },
   levelIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FEF3E7',
+    width: iconContainer.lg.size,
+    height: iconContainer.lg.size,
+    borderRadius: iconContainer.lg.radius,
+    backgroundColor: colors.accent.amber.bg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   levelInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: spacing.md,
   },
   levelLabel: {
-    fontSize: 12,
-    color: MUTED,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
   },
   levelValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_700Bold',
+    ...typography.stat,
+    color: colors.text.primary,
   },
   xpInfo: {
     alignItems: 'flex-end',
   },
   xpLabel: {
-    fontSize: 12,
-    color: MUTED,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
   },
   xpValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: PRIMARY,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.sectionHeader,
+    color: colors.primary.solid,
   },
   progressBarContainer: {
-    height: 8,
-    backgroundColor: BORDER,
-    borderRadius: 4,
+    height: 10,
+    backgroundColor: colors.border,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
   },
   progressBarFill: {
-    height: 8,
-    backgroundColor: PRIMARY,
-    borderRadius: 4,
+    height: 10,
+    borderRadius: borderRadius.full,
   },
   xpToNext: {
-    fontSize: 12,
-    color: MUTED,
-    marginTop: 8,
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: spacing.sm,
     textAlign: 'center',
-    fontFamily: 'Poppins_400Regular',
   },
   section: {
-    paddingHorizontal: 16,
-    marginTop: 24,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xxl,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.md,
   },
   statsCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: BORDER,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
   statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: iconContainer.md.size,
+    height: iconContainer.md.size,
+    borderRadius: iconContainer.md.radius,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_700Bold',
+    ...typography.statMedium,
+    fontSize: 24,
+    color: colors.text.primary,
   },
   statLabel: {
-    fontSize: 12,
-    color: MUTED,
+    ...typography.caption,
+    color: colors.text.secondary,
     marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
   },
   statDivider: {
     width: 1,
-    height: 48,
-    backgroundColor: BORDER,
+    height: 56,
+    backgroundColor: colors.border,
   },
   quickStatsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    marginTop: 12,
-    gap: 10,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    gap: spacing.md,
   },
   quickStatCard: {
-    width: '48%',
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
+    width: '47%',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
   },
   quickStatValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_700Bold',
+    ...typography.statMedium,
+    color: colors.text.primary,
   },
   quickStatLabel: {
-    fontSize: 13,
-    color: MUTED,
+    ...typography.caption,
+    color: colors.text.secondary,
     marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
+  },
+  heatmapCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  recordsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  recordCard: {
+    width: '47%',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  recordIcon: {
+    width: iconContainer.md.size,
+    height: iconContainer.md.size,
+    borderRadius: iconContainer.md.radius,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  recordValue: {
+    ...typography.cardTitle,
+    fontSize: 18,
+    color: colors.text.primary,
+  },
+  recordLabel: {
+    ...typography.small,
+    color: colors.text.secondary,
+    marginTop: 2,
+    textAlign: 'center',
   },
   badgeCount: {
-    fontSize: 13,
-    color: MUTED,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
   },
   badgesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: spacing.md,
   },
   badgeCard: {
-    width: '31%',
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 14,
+    width: '30%',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: BORDER,
   },
   badgeCardLocked: {
     opacity: 0.5,
   },
   badgeIcon: {
-    fontSize: 24,
-    marginBottom: 6,
+    fontSize: 28,
+    marginBottom: spacing.xs,
   },
   badgeName: {
-    fontSize: 11,
+    ...typography.small,
     fontWeight: '600',
-    color: FOREGROUND,
+    color: colors.text.primary,
     textAlign: 'center',
-    fontFamily: 'Poppins_600SemiBold',
   },
   badgeNameLocked: {
-    color: MUTED,
+    color: colors.text.tertiary,
   },
   viewAllBadges: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    marginTop: 8,
-    gap: 4,
+    paddingVertical: spacing.md,
+    marginTop: spacing.sm,
+    gap: spacing.xs,
   },
   viewAllBadgesText: {
-    fontSize: 14,
-    color: PRIMARY,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    fontWeight: '500',
+    color: colors.primary.solid,
   },
   resetButton: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: BORDER,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.xxl,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.card,
     alignItems: 'center',
   },
   resetButtonText: {
-    fontSize: 15,
-    color: MUTED,
-    fontFamily: 'Poppins_500Medium',
-  },
-  heatmapCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-  },
-  recordsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  recordCard: {
-    width: '31%',
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: BORDER,
-  },
-  recordIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  recordValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_700Bold',
-  },
-  recordLabel: {
-    fontSize: 10,
-    color: MUTED,
-    marginTop: 2,
-    textAlign: 'center',
-    fontFamily: 'Poppins_400Regular',
+    ...typography.body,
+    color: colors.text.secondary,
   },
 });

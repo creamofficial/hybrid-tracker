@@ -2,24 +2,23 @@ import { View, ScrollView, Pressable, Alert, StyleSheet } from "react-native";
 import { Text } from "~/components/ui/text";
 import { useStore } from "~/store/useStore";
 import { STRONGLIFTS_5X5 } from "~/data/programs/stronglifts";
+import { LinearGradient } from "expo-linear-gradient";
 import { Dumbbell, Star, Clock, Lock, ChevronRight } from "lucide-react-native";
-import Svg, { Circle } from "react-native-svg";
-
-// Kaizen Design System
-const PRIMARY = "#FF6B35";
-const FOREGROUND = "#1A1A1A";
-const MUTED = "#4A4A4A";
-const CREAM = "#FFFFFF";
-const CARD = "#FFFFFF";
-const BORDER = "#E8E8E8";
+import { colors, shadows, typography, borderRadius, spacing, iconContainer } from "~/lib/theme";
+import { GradientButton } from "~/components/ui/gradient-button";
 
 const AVAILABLE_PROGRAMS = [STRONGLIFTS_5X5];
 
-// Compact progress bar
+// Progress bar component
 function ProgressBar({ progress }: { progress: number }) {
   return (
     <View style={styles.progressBarContainer}>
-      <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+      <LinearGradient
+        colors={[colors.primary.start, colors.primary.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.progressBarFill, { width: `${progress}%` }]}
+      />
     </View>
   );
 }
@@ -64,13 +63,13 @@ export default function ProgramsScreen() {
           const isActive = activeProgram?.id === program.id;
 
           return (
-            <View key={program.id} style={[styles.featuredCard, isActive && styles.featuredCardActive]}>
+            <View key={program.id} style={[styles.featuredCard, shadows.elevated, isActive && styles.featuredCardActive]}>
               <View style={styles.featuredHeader}>
                 <View style={styles.featuredIcon}>
-                  <Dumbbell size={24} color={PRIMARY} strokeWidth={2} />
+                  <Dumbbell size={26} color={colors.primary.solid} strokeWidth={2} />
                 </View>
                 <View style={styles.featuredBadge}>
-                  <Star size={12} color="#EAB308" fill="#EAB308" />
+                  <Star size={12} color={colors.accent.yellow.icon} fill={colors.accent.yellow.icon} />
                   <Text style={styles.featuredBadgeText}>Beginner</Text>
                 </View>
               </View>
@@ -80,7 +79,7 @@ export default function ProgramsScreen() {
 
               <View style={styles.featuredMeta}>
                 <View style={styles.metaItem}>
-                  <Clock size={14} color={MUTED} strokeWidth={2} />
+                  <Clock size={14} color={colors.text.secondary} strokeWidth={2} />
                   <Text style={styles.metaText}>{program.weeks.length} weeks</Text>
                 </View>
                 <Text style={styles.metaDivider}>·</Text>
@@ -104,12 +103,13 @@ export default function ProgramsScreen() {
                   </Pressable>
                 </View>
               ) : (
-                <Pressable
-                  style={styles.startButton}
-                  onPress={() => handleSelectProgram(program)}
-                >
-                  <Text style={styles.startButtonText}>Start program</Text>
-                </Pressable>
+                <View style={styles.startButtonContainer}>
+                  <GradientButton
+                    title="Start program"
+                    onPress={() => handleSelectProgram(program)}
+                    size="md"
+                  />
+                </View>
               )}
             </View>
           );
@@ -120,44 +120,50 @@ export default function ProgramsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Coming soon</Text>
 
-        <View style={styles.comingSoonCard}>
-          <View style={[styles.comingSoonIcon, { backgroundColor: '#F3E8FF' }]}>
-            <Dumbbell size={20} color="#8B5CF6" strokeWidth={2} />
+        <View style={[styles.comingSoonCard, shadows.card]}>
+          <View style={[styles.comingSoonIcon, { backgroundColor: colors.accent.purple.bg }]}>
+            <Text style={styles.programNumber}>1</Text>
           </View>
           <View style={styles.comingSoonContent}>
             <Text style={styles.comingSoonName}>5/3/1</Text>
             <Text style={styles.comingSoonDesc}>Wendler's classic strength program</Text>
           </View>
-          <Lock size={18} color={BORDER} strokeWidth={2} />
+          <View style={styles.lockBadge}>
+            <Lock size={14} color={colors.text.tertiary} strokeWidth={2} />
+          </View>
         </View>
 
-        <View style={styles.comingSoonCard}>
-          <View style={[styles.comingSoonIcon, { backgroundColor: '#FCE7F3' }]}>
-            <Dumbbell size={20} color="#EC4899" strokeWidth={2} />
+        <View style={[styles.comingSoonCard, shadows.card]}>
+          <View style={[styles.comingSoonIcon, { backgroundColor: colors.accent.pink.bg }]}>
+            <Text style={styles.programNumber}>2</Text>
           </View>
           <View style={styles.comingSoonContent}>
             <Text style={styles.comingSoonName}>Tactical Barbell</Text>
             <Text style={styles.comingSoonDesc}>Hybrid strength + conditioning</Text>
           </View>
-          <Lock size={18} color={BORDER} strokeWidth={2} />
+          <View style={styles.lockBadge}>
+            <Lock size={14} color={colors.text.tertiary} strokeWidth={2} />
+          </View>
         </View>
 
-        <View style={styles.comingSoonCard}>
-          <View style={[styles.comingSoonIcon, { backgroundColor: '#E0F2FE' }]}>
-            <Dumbbell size={20} color="#0EA5E9" strokeWidth={2} />
+        <View style={[styles.comingSoonCard, shadows.card]}>
+          <View style={[styles.comingSoonIcon, { backgroundColor: colors.accent.blue.bg }]}>
+            <Text style={styles.programNumber}>3</Text>
           </View>
           <View style={styles.comingSoonContent}>
             <Text style={styles.comingSoonName}>GZCLP</Text>
             <Text style={styles.comingSoonDesc}>Linear progression for intermediates</Text>
           </View>
-          <Lock size={18} color={BORDER} strokeWidth={2} />
+          <View style={styles.lockBadge}>
+            <Lock size={14} color={colors.text.tertiary} strokeWidth={2} />
+          </View>
         </View>
       </View>
 
       {/* Request Program */}
       <Pressable style={styles.requestButton}>
         <Text style={styles.requestButtonText}>Request a program</Text>
-        <ChevronRight size={18} color={PRIMARY} strokeWidth={2} />
+        <ChevronRight size={18} color={colors.primary.solid} strokeWidth={2} />
       </Pressable>
 
       <View style={{ height: 32 }} />
@@ -168,213 +174,197 @@ export default function ProgramsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: CREAM,
+    backgroundColor: colors.background,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   headerTitle: {
+    ...typography.sectionHeader,
     fontSize: 24,
-    fontWeight: '700',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_700Bold',
+    color: colors.text.primary,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: MUTED,
-    marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
   },
   section: {
-    paddingHorizontal: 16,
-    marginTop: 20,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xl,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: MUTED,
-    marginBottom: 12,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.md,
   },
   featuredCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
   },
   featuredCardActive: {
-    borderColor: PRIMARY,
-    borderLeftWidth: 3,
-    borderLeftColor: PRIMARY,
+    borderWidth: 2,
+    borderColor: colors.primary.solid,
   },
   featuredHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing.lg,
   },
   featuredIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#FEF3E7',
+    width: iconContainer.xl.size,
+    height: iconContainer.xl.size,
+    borderRadius: iconContainer.xl.radius,
+    backgroundColor: colors.accent.orange.bg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   featuredBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF9C3',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
+    backgroundColor: colors.accent.yellow.bg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    gap: spacing.xs,
   },
   featuredBadgeText: {
-    fontSize: 12,
-    fontWeight: '500',
+    ...typography.small,
+    fontWeight: '600',
     color: '#92400E',
-    fontFamily: 'Poppins_500Medium',
   },
   featuredName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.sectionHeader,
+    fontSize: 20,
+    color: colors.text.primary,
   },
   featuredDesc: {
-    fontSize: 14,
-    color: MUTED,
-    marginTop: 4,
-    lineHeight: 20,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.body,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
+    lineHeight: 22,
   },
   featuredMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
-    gap: 6,
+    marginTop: spacing.md,
+    gap: spacing.sm,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: spacing.xs,
   },
   metaText: {
-    fontSize: 13,
-    color: MUTED,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
   },
   metaDivider: {
-    fontSize: 13,
-    color: MUTED,
+    ...typography.caption,
+    color: colors.text.tertiary,
   },
-  startButton: {
-    backgroundColor: PRIMARY,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  startButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    fontFamily: 'Poppins_600SemiBold',
+  startButtonContainer: {
+    marginTop: spacing.xl,
   },
   activeSection: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: spacing.xl,
+    paddingTop: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: BORDER,
+    borderTopColor: colors.border,
   },
   activeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   activeLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: MUTED,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    color: colors.text.secondary,
   },
   activeProgress: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: PRIMARY,
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    fontWeight: '600',
+    color: colors.primary.solid,
   },
   progressBarContainer: {
-    height: 6,
-    backgroundColor: BORDER,
-    borderRadius: 3,
+    height: 8,
+    backgroundColor: colors.border,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
   },
   progressBarFill: {
-    height: 6,
-    backgroundColor: PRIMARY,
-    borderRadius: 3,
+    height: 8,
+    borderRadius: borderRadius.full,
   },
   endButton: {
-    paddingVertical: 10,
+    paddingVertical: spacing.md,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: spacing.md,
   },
   endButtonText: {
-    fontSize: 14,
-    color: '#DC2626',
-    fontFamily: 'Poppins_500Medium',
+    ...typography.caption,
+    fontWeight: '500',
+    color: colors.error,
   },
   comingSoonCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: BORDER,
-    marginBottom: 10,
-    opacity: 0.6,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    opacity: 0.7,
   },
   comingSoonIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: iconContainer.lg.size,
+    height: iconContainer.lg.size,
+    borderRadius: iconContainer.lg.radius,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  programNumber: {
+    ...typography.cardTitle,
+    color: colors.text.secondary,
+  },
   comingSoonContent: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: spacing.lg,
   },
   comingSoonName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: FOREGROUND,
-    fontFamily: 'Poppins_600SemiBold',
+    ...typography.cardTitle,
+    color: colors.text.primary,
   },
   comingSoonDesc: {
-    fontSize: 12,
-    color: MUTED,
-    marginTop: 1,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  lockBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   requestButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    marginHorizontal: 16,
-    marginTop: 20,
-    gap: 4,
+    paddingVertical: spacing.lg,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    gap: spacing.xs,
   },
   requestButtonText: {
-    fontSize: 15,
+    ...typography.body,
     fontWeight: '500',
-    color: PRIMARY,
-    fontFamily: 'Poppins_500Medium',
+    color: colors.primary.solid,
   },
 });

@@ -1,135 +1,150 @@
-import { View, Text, Pressable } from "react-native";
-import { Dumbbell, Footprints, Target, Zap } from "lucide-react-native";
-import { cn } from "~/lib/utils";
-
-// Kaizen Brand Colors
-const KAIZEN_ORANGE = "#FF6B35";
-const LIGHT_ORANGE = "#FFB088";
-const CREAM = "#F5F1E8";
-const CREAM_LIGHT = "#FFFCF7";
-const DEEP_BLACK = "#1A1A1A";
-const CHARCOAL = "#4A4A4A";
-const SOFT_GRAY = "#E8E8E8";
-const TEAL = "#10B981";
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Dumbbell, Footprints, ChevronRight } from "lucide-react-native";
+import { colors, shadows, typography, borderRadius, spacing, iconContainer } from "~/lib/theme";
 
 interface WorkoutCardProps {
-  name: string;
+  type: 'run' | 'lift';
+  title: string;
   date: string;
-  exercises: string[];
-  type?: "pull" | "push" | "shoulders" | "legs" | "default";
+  detail: string;
   onPress?: () => void;
-  className?: string;
 }
 
-const iconMap = {
-  pull: Dumbbell,
-  push: Dumbbell,
-  shoulders: Zap,
-  legs: Footprints,
-  default: Dumbbell,
-};
-
-const colorMap = {
-  pull: KAIZEN_ORANGE,
-  push: KAIZEN_ORANGE,
-  shoulders: KAIZEN_ORANGE,
-  legs: TEAL,
-  default: KAIZEN_ORANGE,
-};
-
 export function WorkoutCard({
-  name,
+  type,
+  title,
   date,
-  exercises,
-  type = "default",
+  detail,
   onPress,
-  className,
 }: WorkoutCardProps) {
-  const Icon = iconMap[type] || iconMap.default;
-  const iconColor = colorMap[type] || colorMap.default;
-  const isRun = type === "legs";
+  const isRun = type === 'run';
+  const Icon = isRun ? Footprints : Dumbbell;
+  const iconBgColor = isRun ? colors.accent.green.bg : colors.accent.orange.bg;
+  const iconColor = isRun ? colors.accent.green.icon : colors.accent.orange.icon;
 
   return (
-    <Pressable onPress={onPress}>
-      <View
-        style={{
-          backgroundColor: CREAM_LIGHT,
-          borderRadius: 20,
-          padding: 16,
-          width: 165,
-          marginRight: 12,
-          borderWidth: 1,
-          borderColor: SOFT_GRAY,
-          borderLeftWidth: 4,
-          borderLeftColor: iconColor,
-          shadowColor: DEEP_BLACK,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.04,
-          shadowRadius: 6,
-          elevation: 2,
-        }}
-      >
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            backgroundColor: isRun ? "#E6F7F2" : "#FEF3E7",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 12,
-          }}
-        >
-          <Icon size={20} color={iconColor} />
-        </View>
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: "600",
-            color: DEEP_BLACK,
-            marginBottom: 4,
-            fontFamily: "Poppins_600SemiBold",
-          }}
-        >
-          {name}
-        </Text>
-        <Text
-          style={{
-            fontSize: 13,
-            color: CHARCOAL,
-            marginBottom: 12,
-            fontFamily: "Poppins_400Regular",
-          }}
-        >
-          {date}
-        </Text>
-        <View style={{ gap: 4 }}>
-          {exercises.slice(0, 3).map((exercise, index) => (
-            <Text
-              key={index}
-              style={{
-                fontSize: 12,
-                color: CHARCOAL,
-                fontFamily: "Poppins_400Regular",
-              }}
-              numberOfLines={1}
-            >
-              {exercise}
-            </Text>
-          ))}
-          {exercises.length > 3 && (
-            <Text
-              style={{
-                fontSize: 12,
-                color: "#7A7A7A",
-                fontFamily: "Poppins_400Regular",
-              }}
-            >
-              +{exercises.length - 3} more
-            </Text>
-          )}
-        </View>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.container,
+        shadows.card,
+        pressed && styles.pressed,
+      ]}
+    >
+      <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
+        <Icon size={20} color={iconColor} strokeWidth={2} />
       </View>
+      <View style={styles.content}>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.date}>{date}</Text>
+        <Text style={styles.detail}>{detail}</Text>
+      </View>
+      {onPress && (
+        <ChevronRight size={20} color={colors.border} strokeWidth={2} />
+      )}
     </Pressable>
   );
 }
+
+// Compact horizontal card for carousel
+export function WorkoutCardCompact({
+  type,
+  title,
+  date,
+  detail,
+  onPress,
+}: WorkoutCardProps) {
+  const isRun = type === 'run';
+  const Icon = isRun ? Footprints : Dumbbell;
+  const iconBgColor = isRun ? colors.accent.green.bg : colors.accent.orange.bg;
+  const iconColor = isRun ? colors.accent.green.icon : colors.accent.orange.icon;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.compactContainer,
+        shadows.card,
+        pressed && styles.pressed,
+      ]}
+    >
+      <View style={[styles.compactIcon, { backgroundColor: iconBgColor }]}>
+        <Icon size={18} color={iconColor} strokeWidth={2} />
+      </View>
+      <Text style={styles.compactTitle} numberOfLines={1}>{title}</Text>
+      <Text style={styles.compactDate}>{date}</Text>
+      <Text style={styles.compactDetail} numberOfLines={1}>{detail}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
+  },
+  iconContainer: {
+    width: iconContainer.lg.size,
+    height: iconContainer.lg.size,
+    borderRadius: iconContainer.lg.radius,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    flex: 1,
+  },
+  title: {
+    ...typography.cardTitle,
+    color: colors.text.primary,
+  },
+  date: {
+    ...typography.caption,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  detail: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginTop: 4,
+  },
+  // Compact card styles
+  compactContainer: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    width: 150,
+    marginRight: spacing.md,
+  },
+  compactIcon: {
+    width: iconContainer.md.size,
+    height: iconContainer.md.size,
+    borderRadius: iconContainer.md.radius,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  compactTitle: {
+    ...typography.cardTitle,
+    fontSize: 15,
+    color: colors.text.primary,
+    marginBottom: 2,
+  },
+  compactDate: {
+    ...typography.caption,
+    fontSize: 12,
+    color: colors.text.secondary,
+    marginBottom: spacing.sm,
+  },
+  compactDetail: {
+    ...typography.small,
+    color: colors.text.tertiary,
+  },
+});

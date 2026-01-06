@@ -1,10 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
-
-// Kaizen Design System
-const PRIMARY = "#FF6B35";
-const FOREGROUND = "#1A1A1A";
-const MUTED = "#4A4A4A";
-const BORDER = "#E8E8E8";
+import { colors, typography, spacing, borderRadius } from "~/lib/theme";
 
 interface ActivityHeatmapProps {
   workouts: Array<{ date: string }>;
@@ -31,9 +26,9 @@ export function ActivityHeatmap({ workouts, days = 35, onDayPress }: ActivityHea
 
   // Get color based on workout count
   const getColor = (count: number) => {
-    if (count === 0) return BORDER;
-    if (count === 1) return '#FFB088';
-    return PRIMARY;
+    if (count === 0) return colors.border;
+    if (count === 1) return 'rgba(255, 138, 0, 0.4)';
+    return colors.primary.solid;
   };
 
   // Group by weeks for grid layout
@@ -73,9 +68,9 @@ export function ActivityHeatmap({ workouts, days = 35, onDayPress }: ActivityHea
       </View>
       <View style={styles.legend}>
         <Text style={styles.legendText}>Less</Text>
-        <View style={[styles.legendBox, { backgroundColor: BORDER }]} />
-        <View style={[styles.legendBox, { backgroundColor: '#FFB088' }]} />
-        <View style={[styles.legendBox, { backgroundColor: PRIMARY }]} />
+        <View style={[styles.legendBox, { backgroundColor: colors.border }]} />
+        <View style={[styles.legendBox, { backgroundColor: 'rgba(255, 138, 0, 0.4)' }]} />
+        <View style={[styles.legendBox, { backgroundColor: colors.primary.solid }]} />
         <Text style={styles.legendText}>More</Text>
       </View>
     </View>
@@ -84,40 +79,39 @@ export function ActivityHeatmap({ workouts, days = 35, onDayPress }: ActivityHea
 
 const styles = StyleSheet.create({
   container: {
-    padding: 12,
+    padding: spacing.lg,
   },
   grid: {
     flexDirection: 'row',
-    gap: 3,
+    gap: 4,
   },
   week: {
     flexDirection: 'column',
-    gap: 3,
+    gap: 4,
   },
   day: {
-    width: 12,
-    height: 12,
+    width: 14,
+    height: 14,
     borderRadius: 3,
   },
   dayToday: {
-    borderWidth: 1,
-    borderColor: FOREGROUND,
+    borderWidth: 1.5,
+    borderColor: colors.text.primary,
   },
   legend: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    marginTop: 8,
-    gap: 4,
+    marginTop: spacing.md,
+    gap: spacing.xs,
   },
   legendText: {
-    fontSize: 10,
-    color: MUTED,
-    fontFamily: 'Poppins_400Regular',
+    ...typography.small,
+    color: colors.text.tertiary,
   },
   legendBox: {
-    width: 10,
-    height: 10,
+    width: 12,
+    height: 12,
     borderRadius: 2,
   },
 });
