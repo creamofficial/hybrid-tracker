@@ -12,18 +12,18 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#16213e',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#1A1A1A',
   },
   subtitle: {
     fontSize: 16,
-    color: '#8b8b8b',
+    color: '#6B7280',
     marginTop: 8,
   },
 });
